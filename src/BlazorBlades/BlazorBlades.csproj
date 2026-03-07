@@ -5,22 +5,23 @@
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Description>Render Blazor Components using Minimal APIs</Description>
         <Title>BlazorBlades</Title>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <IsPackable>true</IsPackable>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeSourceGeneratorInPackage</TargetsForTfmSpecificContentInPackage>
         <!--<PackageIcon>icon.png</PackageIcon>-->
         <PackageId>BlazorBlades</PackageId>
         <Version>0.1.0</Version>
         <Authors>Jason Barnes</Authors>
         <Copyright>Copyright © Jason Barnes</Copyright>
-        <PackageTags>ASP.NET;Blazor;MinimalApis;RazorComponentResult;Hypermedia</PackageTags>
+        <PackageTags>ASP.NET;Blazor;MinimalApis;RazorComponentResult;Hypermedia;SourceGenerator</PackageTags>
         <RepositoryUrl>https://github.com/vyrotek/BlazorBlades</RepositoryUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageProjectUrl>https://github.com/vyrotek/BlazorBlades</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
@@ -31,6 +32,12 @@
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" Version="10.0.103" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" Link="README.md" />
+        <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE" />
+        <None Include="build\BlazorBlades.targets" Pack="true" PackagePath="build\BlazorBlades.targets" />
     </ItemGroup>
 
     <ItemGroup>

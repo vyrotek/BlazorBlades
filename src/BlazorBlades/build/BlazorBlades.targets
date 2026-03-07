@@ -1,0 +1,5 @@
+<Project>
+    <ItemGroup Condition="'$(UsingMicrosoftNETSdkRazor)' == 'true' or '$(UsingMicrosoftNETSdkWeb)' == 'true'">
+        <AdditionalFiles Include="$(MSBuildProjectDirectory)\**\*.razor" Exclude="$(MSBuildProjectDirectory)\bin\**;$(MSBuildProjectDirectory)\obj\**" Visible="false" />
+    </ItemGroup>
+</Project>
