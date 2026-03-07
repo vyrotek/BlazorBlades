@@ -1,0 +1,23 @@
+﻿@inherits LayoutComponentBase
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <base href="/" />
+    <link rel="stylesheet" href="@Assets["app.css"]" asp-append-version="true" />
+    <link rel="stylesheet" href="@Assets["BlazorBlades.Web.styles.css"]" asp-append-version="true" />
+            
+    <script type="module" src="https://cdn.jsdelivr.net/gh/starfederation/datastar@1.0.0-RC.8/bundles/datastar.js"></script>
+
+    <HeadOutlet />
+</head>
+
+<body>
+    @Body
+</body>
+
+</html>

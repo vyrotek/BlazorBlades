@@ -1,0 +1,53 @@
+﻿@implements IRenderProps
+@implements IMapEndpoints
+@layout AppLayout
+
+<PageTitle>Home</PageTitle>
+
+<h1 class="test">Hello, world!</h1>
+
+<div>
+    User: @User.Name
+</div>
+
+<div>
+    Food: @Food
+</div>
+
+<Status Today="DateTime.Now" Stats="new(100, 100)" />
+
+<button type="button" data-indicator:_fetching data-on:click="@@get('/status')">
+    <span data-show="!$_fetching">Update</span>
+    <span data-show="$_fetching">...</span>
+</button>
+
+@code
+{
+    public record UserModel(string Name, int Age);
+
+    [Parameter, EditorRequired] 
+    public UserModel User { get; set; }
+
+    [Parameter, EditorRequired] 
+    public string Food { get; set; }
+
+    public static void MapEndpoints(IEndpointRouteBuilder app)
+    {
+        app.MapGet("/", () =>
+        {
+            var user = new UserModel("Jason", 41);
+
+            return Render(new(user, "Pizza"));
+        });
+
+        app.MapGet("/status", async () =>
+        {
+            await Task.Delay(1000);
+
+            var rnd = new Random();
+            var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
+
+            return Status.Render(new(DateTime.Now, stats));
+        });
+    }
+}

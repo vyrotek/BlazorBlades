@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net10.0</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Title>BlazorBlades</Title>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IsPackable>true</IsPackable>
+        <!--<PackageIcon>icon.png</PackageIcon>-->
+        <PackageId>BlazorBlades</PackageId>
+        <Version>0.1.0</Version>
+        <Authors>Jason Barnes</Authors>
+        <Copyright>Copyright © Jason Barnes</Copyright>
+        <PackageTags>ASP.NET;Blazor;MinimalApis;RazorComponentResult;Hypermedia</PackageTags>
+        <RepositoryUrl>https://github.com/vyrotek/BlazorBlades</RepositoryUrl>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://github.com/vyrotek/BlazorBlades</PackageProjectUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    </PropertyGroup>
+
+    <!--<ItemGroup>
+        <None Include="../../icon.png" Pack="true" PackagePath="\" />
+    </ItemGroup>-->
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" Version="10.0.103" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BlazorBlades.Generators\BlazorBlades.Generators.csproj" OutputItemType="SourceGeneratorAssemblyPath" ReferenceOutputAssembly="false" Private="true" />
+    </ItemGroup>
+
+    <Target Name="IncludeSourceGeneratorInPackage">
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="@(SourceGeneratorAssemblyPath)" PackagePath="analyzers/dotnet/cs" />
+        </ItemGroup>
+    </Target>
+
+</Project>

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/example/">
+    <Project Path="example/BlazorBlades.Web.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/BlazorBlades.Generators/BlazorBlades.Generators.csproj" />
+    <Project Path="src/BlazorBlades/BlazorBlades.csproj" />
+  </Folder>
+</Solution>
