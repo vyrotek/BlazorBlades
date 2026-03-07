@@ -38,7 +38,7 @@ That gives each component a small, explicit, type-safe rendering surface while k
 
 ## Example
 
-The sample app shows the intended workflow in [BlazorBlades.Web/Components/Pages/Home.razor](example/BlazorBlades.Web/Components/Pages/Home.razor).
+The sample app shows the intended workflow in [Pages/Home.razor](example/Components/Pages/Home.razor).
 
 ```razor
 @implements IRenderProps
@@ -106,7 +106,7 @@ app.MapGet("/", () =>
 
 ## Minimal API Endpoints
 
-The sample app wires everything up in [BlazorBlades.Web/Program.cs](BlazorBlades.Web/Program.cs):
+The sample app wires everything up in [Program.cs](example/Program.cs):
 
 ```csharp
 builder.Services.AddRazorComponents();
