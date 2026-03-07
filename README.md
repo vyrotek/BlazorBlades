@@ -2,6 +2,39 @@
 
 ![Icon](icon.png)
 
+## TL;DR
+
+Render strongly-typed Blazor components via Minimal APIs organized within .razor files
+
+## Try It
+
+Add NuGet
+
+``` shell
+> dotnet add package BlazorBlades
+```
+
+Add these to .razor components
+
+``` razor
+@implements IRenderProps
+@implements IMapEndpoints
+
+@code
+{
+  public static void MapEndpoints(IEndpointRouteBuilder app)
+  {
+    app.MapGet("/", () => 
+    {
+      // Call Render with Props
+      return ComponentName.Render(new ComponentNameProps()); 
+    });
+  }
+}
+```
+
+## What
+
 Blazor Blades is an experimental project inspired by [RazorSlices](https://github.com/DamianEdwards/RazorSlices), but built around Blazor `.razor` components instead of Razor `.cshtml` files.
 
 It is aimed at developers looking for a .NET hypermedia workflow that stays strongly typed end to end while still keeping the composability and reusability of Blazor components.
