@@ -1,1 +1,3 @@
-# BlazorBladesNuget
+# BlazorBlades
+
+![Icon](icon.png)

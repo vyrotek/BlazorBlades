@@ -10,7 +10,7 @@
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <IsPackable>true</IsPackable>
         <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeSourceGeneratorInPackage</TargetsForTfmSpecificContentInPackage>
-        <!--<PackageIcon>icon.png</PackageIcon>-->
+        <PackageIcon>icon.png</PackageIcon>
         <PackageId>BlazorBlades</PackageId>
         <Version>0.1.0</Version>
         <Authors>Jason Barnes</Authors>
@@ -25,9 +25,9 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
-    <!--<ItemGroup>
+    <ItemGroup>
         <None Include="../../icon.png" Pack="true" PackagePath="\" />
-    </ItemGroup>-->
+    </ItemGroup>
 
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
