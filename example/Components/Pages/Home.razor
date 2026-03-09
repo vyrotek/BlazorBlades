@@ -2,6 +2,12 @@
 @implements IMapEndpoints
 @layout AppLayout
 
+<style type="text/css">
+    .test {
+        color: red;
+    }
+</style>
+
 <PageTitle>Home</PageTitle>
 
 <h1 class="test">Hello, world!</h1>
@@ -25,10 +31,10 @@
 {
     public record UserModel(string Name, int Age);
 
-    [Parameter, EditorRequired] 
+    [Parameter, EditorRequired]
     public UserModel User { get; set; }
 
-    [Parameter, EditorRequired] 
+    [Parameter, EditorRequired]
     public string Food { get; set; }
 
     public static void MapEndpoints(IEndpointRouteBuilder app)

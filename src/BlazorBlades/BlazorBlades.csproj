@@ -8,11 +8,11 @@
         <Description>Render Blazor Components using Minimal APIs</Description>
         <Title>BlazorBlades</Title>
         <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <IsPackable>true</IsPackable>
-        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeSourceGeneratorInPackage</TargetsForTfmSpecificContentInPackage>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IsPackable>true</IsPackable>        
         <PackageIcon>icon.png</PackageIcon>
         <PackageId>BlazorBlades</PackageId>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <Authors>Jason Barnes</Authors>
         <Copyright>Copyright © Jason Barnes</Copyright>
         <PackageTags>ASP.NET;Blazor;MinimalApis;RazorComponentResult;Hypermedia;SourceGenerator</PackageTags>
@@ -23,6 +23,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);IncludeSourceGeneratorInPackage</TargetsForTfmSpecificContentInPackage>
     </PropertyGroup>
 
     <ItemGroup>
@@ -46,7 +47,10 @@
 
     <Target Name="IncludeSourceGeneratorInPackage">
         <ItemGroup>
-            <TfmSpecificPackageFile Include="@(SourceGeneratorAssemblyPath)" PackagePath="analyzers/dotnet/cs" />
+            <_SourceGeneratorPackageFile Include="@(SourceGeneratorAssemblyPath)" />
+            <_SourceGeneratorPackageFile Include="$(MSBuildThisFileDirectory)..\BlazorBlades.Generators\bin\$(Configuration)\netstandard2.0\*.dll"
+                                         Exclude="$(MSBuildThisFileDirectory)..\BlazorBlades.Generators\bin\$(Configuration)\netstandard2.0\BlazorBlades.Generators.dll;$(MSBuildThisFileDirectory)..\BlazorBlades.Generators\bin\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis*.dll" />
+            <TfmSpecificPackageFile Include="@(_SourceGeneratorPackageFile)" PackagePath="analyzers/dotnet/cs" />
         </ItemGroup>
     </Target>
 

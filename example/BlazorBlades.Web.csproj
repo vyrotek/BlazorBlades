@@ -15,4 +15,14 @@
         <AdditionalFiles Include="**\*.razor" />
     </ItemGroup>
 
+    <!-- Needed because sample Web project references BlazorBlades directly -->
+    <Target Name="IncludeBlazorBladesGeneratorDependencies"
+            BeforeTargets="CoreCompile"
+            Condition="Exists('..\src\BlazorBlades.Generators\bin\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll')">
+        <ItemGroup>
+            <Analyzer Include="..\src\BlazorBlades.Generators\bin\$(Configuration)\netstandard2.0\*.dll"
+                      Exclude="..\src\BlazorBlades.Generators\bin\$(Configuration)\netstandard2.0\BlazorBlades.Generators.dll;..\src\BlazorBlades.Generators\bin\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis*.dll" />
+        </ItemGroup>
+    </Target>
+
 </Project>
