@@ -10,14 +10,14 @@ using System.Linq;
 namespace BlazorBlades.Generators
 {
     [Generator]
-    public class RenderPropsGenerator : IIncrementalGenerator
+    public class ResultPropsGenerator : IIncrementalGenerator
     {
         private const string EditorRequiredAttributeName = "EditorRequiredAttribute";
         private const string GlobalAliasPrefix = "global::";
         private const string ParameterAttributeName = "ParameterAttribute";
         private const string PropsTypeSuffix = "Props";
-        private const string RenderPropsInterfaceName = "IRenderProps";
-        private const string RenderPropsInterfaceMetadataName = "BlazorBlades.IRenderProps";
+        private const string ResultPropsInterfaceName = "IResultProps";
+        private const string ResultPropsInterfaceMetadataName = "BlazorBlades.IResultProps";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -27,7 +27,7 @@ namespace BlazorBlades.Generators
                         node is ClassDeclarationSyntax classSyntax
                         && GeneratorTypeHelpers.CouldBeInterfaceCandidate(
                             classSyntax,
-                            RenderPropsInterfaceName
+                            ResultPropsInterfaceName
                         ),
                     transform: static (ctx, _) =>
                     {
@@ -59,9 +59,9 @@ namespace BlazorBlades.Generators
                 {
                     var (compilation, (projectOptions, (classCandidates, razorDocuments))) = source;
 
-                    var renderPropsInterfaceSymbol = compilation.GetTypeByMetadataName(RenderPropsInterfaceMetadataName);
+                    var resultPropsInterfaceSymbol = compilation.GetTypeByMetadataName(ResultPropsInterfaceMetadataName);
 
-                    if (renderPropsInterfaceSymbol is null)
+                    if (resultPropsInterfaceSymbol is null)
                     {
                         return;
                     }
@@ -75,14 +75,14 @@ namespace BlazorBlades.Generators
                             continue;
                         }
 
-                        var renderCandidate = RenderPropsGenerator.TryCreateSymbolCandidate(typeSymbol, renderPropsInterfaceSymbol);
+                        var resultCandidate = ResultPropsGenerator.TryCreateSymbolCandidate(typeSymbol, resultPropsInterfaceSymbol);
 
-                        if (renderCandidate is null || !generatedTypes.Add(renderCandidate.ComponentTypeName))
+                        if (resultCandidate is null || !generatedTypes.Add(resultCandidate.ComponentTypeName))
                         {
                             continue;
                         }
 
-                        RenderPropsGenerator.AddSource(spc, renderCandidate);
+                        ResultPropsGenerator.AddSource(spc, resultCandidate);
                     }
 
                     var razorProjectEngine = RazorComponentDiscovery
@@ -94,29 +94,29 @@ namespace BlazorBlades.Generators
 
                     foreach (var razorDocumentPath in razorDocuments.Distinct(StringComparer.OrdinalIgnoreCase))
                     {
-                        var renderCandidate = RenderPropsGenerator.TryCreateRazorCandidate(
+                        var resultCandidate = ResultPropsGenerator.TryCreateRazorCandidate(
                             compilation,
-                            renderPropsInterfaceSymbol,
+                            resultPropsInterfaceSymbol,
                             razorProjectEngine,
                             projectOptions.ProjectDirectory,
                             razorDocumentPath
                         );
 
-                        if (renderCandidate is null || !generatedTypes.Add(renderCandidate.ComponentTypeName))
+                        if (resultCandidate is null || !generatedTypes.Add(resultCandidate.ComponentTypeName))
                         {
                             continue;
                         }
 
-                        RenderPropsGenerator.AddSource(spc, renderCandidate);
+                        ResultPropsGenerator.AddSource(spc, resultCandidate);
                     }
                 }
             );
         }
 
-        private static RenderCandidate? TryCreateSymbolCandidate(INamedTypeSymbol typeSymbol, INamedTypeSymbol renderPropsInterfaceSymbol)
+        private static ResultCandidate? TryCreateSymbolCandidate(INamedTypeSymbol typeSymbol, INamedTypeSymbol resultPropsInterfaceSymbol)
         {
             if (!GeneratorTypeHelpers.IsTopLevelConcreteNonGenericType(typeSymbol)
-                || !GeneratorTypeHelpers.ImplementsInterface(typeSymbol, renderPropsInterfaceSymbol))
+                || !GeneratorTypeHelpers.ImplementsInterface(typeSymbol, resultPropsInterfaceSymbol))
             {
                 return null;
             }
@@ -127,7 +127,7 @@ namespace BlazorBlades.Generators
 
             var props = GetRequiredParameters(typeSymbol)
                 .Select(property =>
-                    new RenderProperty(
+                    new ResultProperty(
                         property.Name,
                         property.Type.ToDisplayString(
                             SymbolDisplayFormat.FullyQualifiedFormat
@@ -156,9 +156,9 @@ namespace BlazorBlades.Generators
             );
         }
 
-        private static RenderCandidate? TryCreateRazorCandidate(
+        private static ResultCandidate? TryCreateRazorCandidate(
             Compilation compilation,
-            INamedTypeSymbol renderPropsInterfaceSymbol,
+            INamedTypeSymbol resultPropsInterfaceSymbol,
             RazorProjectEngine razorProjectEngine,
             string? projectDirectory,
             string razorDocumentPath
@@ -173,7 +173,7 @@ namespace BlazorBlades.Generators
                 || component is null
                 || !GeneratorTypeHelpers.ImplementsInterface(
                     component.Symbol,
-                    renderPropsInterfaceSymbol
+                    resultPropsInterfaceSymbol
                 ))
             {
                 return null;
@@ -181,7 +181,7 @@ namespace BlazorBlades.Generators
 
             var props = GetRequiredParameters(component.SemanticModel, component.Declaration)
                 .Select(property =>
-                    new RenderProperty(
+                    new ResultProperty(
                         property.Name,
                         property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                     )
@@ -271,7 +271,7 @@ namespace BlazorBlades.Generators
                 _ => string.Empty,
             };
 
-        private static string CreateSource(RenderCandidate candidate)
+        private static string CreateSource(ResultCandidate candidate)
         {
             var namespaceDeclaration = candidate.Namespace is null
                 ? string.Empty
@@ -283,21 +283,26 @@ namespace BlazorBlades.Generators
                 {{candidate.Accessibility}}partial class {{candidate.TypeName}}
                 {
                     public static global::Microsoft.AspNetCore.Http.HttpResults
-                        .RazorComponentResult<{{candidate.TypeName}}>Render({{candidate.PropsTypeName}} props)
+                        .RazorComponentResult<{{candidate.TypeName}}>Result({{candidate.PropsTypeName}} props, string? contentType = null, int? statusCode = null)
                         {
-                            return new(props);
+                            return new(props)
+                            {
+                                PreventStreamingRendering = true,
+                                ContentType = contentType,
+                                StatusCode = statusCode
+                            };
                         }
                 }
                 """;
         }
 
         private static string CreatePropsParameterList(
-            IReadOnlyList<RenderProperty> properties
+            IReadOnlyList<ResultProperty> properties
         ) => string.Join(", ", properties.Select(static property => $"{property.TypeName} {property.Name}"));
 
         private static void AddSource(
             SourceProductionContext sourceProductionContext,
-            RenderCandidate candidate
+            ResultCandidate candidate
         ) => sourceProductionContext.AddSource(
             candidate.HintName,
             SourceText.From(CreateSource(candidate), System.Text.Encoding.UTF8)
@@ -314,14 +319,14 @@ namespace BlazorBlades.Generators
                 + GeneratorConstants.GeneratedCSharpFileExtension;
         }
 
-        private sealed class RenderCandidate
+        private sealed class ResultCandidate
         {
-            public RenderCandidate(
+            public ResultCandidate(
                 string? ns,
                 string typeName,
                 string componentTypeName,
                 string propsTypeName,
-                IReadOnlyList<RenderProperty> properties,
+                IReadOnlyList<ResultProperty> properties,
                 string accessibility,
                 string hintName
             )
@@ -343,16 +348,16 @@ namespace BlazorBlades.Generators
 
             public string PropsTypeName { get; }
 
-            public IReadOnlyList<RenderProperty> Properties { get; }
+            public IReadOnlyList<ResultProperty> Properties { get; }
 
             public string Accessibility { get; }
 
             public string HintName { get; }
         }
 
-        private sealed class RenderProperty
+        private sealed class ResultProperty
         {
-            public RenderProperty(string name, string typeName)
+            public ResultProperty(string name, string typeName)
             {
                 Name = name;
                 TypeName = typeName;

@@ -1,6 +1,6 @@
 namespace BlazorBlades
 {
-    public interface IRenderProps
+    public interface IResultProps
     {
     }
 }

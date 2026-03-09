@@ -1,4 +1,4 @@
-﻿@implements IRenderProps
+﻿@implements IResultProps
 @implements IMapEndpoints
 @layout AppLayout
 
@@ -42,8 +42,7 @@
         app.MapGet("/", () =>
         {
             var user = new UserModel("Jason", 41);
-
-            return Render(new(user, "Pizza"));
+            return Home.Result(new(user, "Pizza"));
         });
 
         app.MapGet("/status", async () =>
@@ -53,7 +52,7 @@
             var rnd = new Random();
             var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
 
-            return Status.Render(new(DateTime.Now, stats));
+            return Status.Result(new(DateTime.Now, stats));
         });
     }
 }
