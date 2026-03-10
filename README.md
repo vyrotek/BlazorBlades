@@ -17,7 +17,7 @@ Add NuGet
 Add these interfaces to .razor components and map endpoints
 
 ``` csharp
-@implements IRenderProps
+@implements IResultProps
 @implements IMapEndpoints
 
 @code
@@ -29,8 +29,8 @@ Add these interfaces to .razor components and map endpoints
       // Generated Props
       var props = new ComponentNameProps();
       
-      // Call Render with Props
-      return ComponentName.Render(props); 
+      // Call Result with Props
+      return ComponentName.Result(props); 
     });
 
     app.MapGet("/fragment", async () =>
@@ -75,13 +75,13 @@ I wanted a way to build HTML-first applications using Minimal APIs with:
 
 BlazorBlades lets a `.razor` component opt into generated capabilities:
 
-- A strongly typed `ComponentProps` record plus a static `Component.Render(...)` method
+- A strongly typed `ComponentProps` record plus a static `Component.Result(...)` method
 - Automatic endpoint mapping via a single `app.MapEndpoints()` call
 
 Two marker interfaces and source generators are used to accomplish this:
 
-- [IRenderProps.cs](src/BlazorBlades/IRenderProps.cs): 
-  - Marks a component that should get generated `Component.Render(props)` helper and `ComponentProps` record
+- [IResultProps.cs](src/BlazorBlades/IResultProps.cs): 
+  - Marks a component that should get generated `Component.Result(props)` helper and `ComponentProps` record
 - [IMapEndpoints.cs](src/BlazorBlades/IMapEndpoints.cs): 
   - Marks a component that exposes a static `MapEndpoints(app)` method to be called
 
