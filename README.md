@@ -4,7 +4,7 @@
 
 ## TL;DR
 
-Render strongly-typed Blazor components via Minimal APIs organized within .razor files
+Render strongly-typed Blazor components and fragments via Minimal APIs organized within .razor files
 
 ## Try It
 
@@ -14,9 +14,9 @@ Add NuGet
 > dotnet add package BlazorBlades
 ```
 
-Add these to .razor components
+Add these interfaces to .razor components and map endpoints
 
-``` razor
+``` csharp
 @implements IRenderProps
 @implements IMapEndpoints
 
@@ -24,141 +24,73 @@ Add these to .razor components
 {
   public static void MapEndpoints(IEndpointRouteBuilder app)
   {
-    app.MapGet("/", () => 
+    app.MapGet("/component", () => 
     {
+      // Generated Props
+      var props = new ComponentNameProps();
+      
       // Call Render with Props
-      return ComponentName.Render(new ComponentNameProps()); 
+      return ComponentName.Render(props); 
     });
+
+    app.MapGet("/fragment", async () =>
+    {
+        // Inline Fragment
+        return Results.Razor
+        (
+            @<div>
+                Hello!
+            </div>
+        );
+    });
+
   }
 }
 ```
 
+Add this to program.cs
+``` csharp
+var app = builder.Build();
+...
+app.MapEndpoints();
+...
+```
+
 ## What
 
-Blazor Blades is an experimental project inspired by [RazorSlices](https://github.com/DamianEdwards/RazorSlices), but built around Blazor `.razor` components instead of Razor `.cshtml` files.
+Blazor Blades is an experimental project inspired by [RazorSlices](https://github.com/DamianEdwards/RazorSlices), but built around Blazor `.razor` components instead of Razor `.cshtml` templates.
 
-It is aimed at developers looking for a .NET hypermedia workflow that stays strongly typed end to end while still keeping the composability and reusability of Blazor components.
+It's aimed at devs looking for a .NET hypermedia workflow that is strongly typed end-to-end while keeping the benefits of Blazor components.
 
 ## Why
 
-I wanted a way to build HTML-first applications with Minimal APIs with:
+I wanted a way to build HTML-first applications using Minimal APIs with:
 
-- Compile-time safety for the data each rendered UI fragment needs
-- Blazor component composition and reuse inside the UI itself
-- Locality of API endpoints with related components
+- Compile-time type safety for the data each rendered template requires
+- Template composition and reuse through components and functions
+- Locality of template, model, and endpoint code
+- Any Javascript library for interactivity (Datastar, Htmx, jQuery, etc.)
 
 ## How
 
-BlazorBlades lets a `.razor` component opt into two generated capabilities:
+BlazorBlades lets a `.razor` component opt into generated capabilities:
 
-- A strongly typed props record plus a static `Component.Render(...)` method
-- Automatic participation in a global `app.MapEndpoints()` call
+- A strongly typed `ComponentProps` record plus a static `Component.Render(...)` method
+- Automatic endpoint mapping via a single `app.MapEndpoints()` call
 
-BlazorBlades uses two marker interfaces from [BlazorBlades](src/BlazorBlades):
+Two marker interfaces and source generators are used to accomplish this:
 
-- [BlazorBlades/IMapEndpoints.cs](src/BlazorBlades/IMapEndpoints.cs): 
-  - Marks a component or class that exposes a static `MapEndpoints(IEndpointRouteBuilder app)` method
-- [BlazorBlades/IRenderProps.cs](src/BlazorBlades/IRenderProps.cs): 
-  - Marks a component that should get generated render helpers based on required parameters
+- [IRenderProps.cs](src/BlazorBlades/IRenderProps.cs): 
+  - Marks a component that should get generated `Component.Render(props)` helper and `ComponentProps` record
+- [IMapEndpoints.cs](src/BlazorBlades/IMapEndpoints.cs): 
+  - Marks a component that exposes a static `MapEndpoints(app)` method to be called
 
-The source generators in [BlazorBlades.Generators](src/BlazorBlades.Generators) scan `.razor` files and C# types to generate:
+BlazorBlades also provides a `Results.Razor(fragment)` helper to render template fragments 
 
-- `ComponentNameProps` records from `[Parameter, EditorRequired]` properties
-- `ComponentName.Render(ComponentNameProps props)` helpers returning `RazorComponentResult<TComponent>`
-- `app.MapEndpoints()` extension that calls each component `MapEndpoints(app)` method
+## Demo
 
-That gives each component a small, explicit, type-safe rendering surface while keeping routing close to the component that owns the UI.
+The sample web app in [Components/Page.razor](example/Components/Page.razor) shows exampes of pages, partials, and fragments.
 
-## Example
+## Who
 
-The sample app shows the intended workflow in [Pages/Home.razor](example/Components/Pages/Home.razor).
-
-```razor
-@implements IRenderProps
-@implements IMapEndpoints
-@layout AppLayout
-
-<PageTitle>Home</PageTitle>
-
-<h1>Hello, world!</h1>
-
-<div>
-	User: @User.Name
-</div>
-
-<div>
-	Food: @Food
-</div>
-
-<Status Today="DateTime.Now" Stats="new(100, 100)" />
-
-@code
-{
-	public record UserModel(string Name, int Age);
-
-	[Parameter, EditorRequired]
-	public UserModel User { get; set; }
-
-	[Parameter, EditorRequired]
-	public string Food { get; set; }
-
-	public static void MapEndpoints(IEndpointRouteBuilder app)
-	{
-		app.MapGet("/", () =>
-		{
-			var user = new UserModel("Jason", 41);
-			return Render(new(user, "Pizza"));
-		});
-	}
-}
-```
-
-BlazorBlades then generates an API shaped like this:
-
-```csharp
-public record HomeProps(Home.UserModel User, string Food);
-
-public partial class Home
-{
-	public static RazorComponentResult<Home> Render(HomeProps props)
-	{
-		return new(props);
-	}
-}
-```
-
-So the endpoint code stays small and typed:
-
-```csharp
-app.MapGet("/", () =>
-{
-	var user = new Home.UserModel("Jason", 41);
-	return Home.Render(new HomeProps(user, "Pizza"));
-});
-```
-
-## Minimal API Endpoints
-
-The sample app wires everything up in [Program.cs](example/Program.cs):
-
-```csharp
-builder.Services.AddRazorComponents();
-
-var app = builder.Build();
-
-app.MapEndpoints();
-
-app.Run();
-```
-
-`app.MapEndpoints()` is generated by the `MapEndpointsGenerator`. It collects every discovered `IMapEndpoints` component and forwards to each component's static `MapEndpoints(app)` method. This keeps the composition root small while still allowing each component to own its route definitions.
-
-## Hypermedia
-
-This project is aimed at HTML-first applications where the server returns complete pages or partial UI fragments over HTTP.
-
-- Blazor components define the HTML shape
-- Local Minimal API handlers return those components directly
-- Client-side hypermedia tools can request updated fragments from targeted endpoints
-
-The goal is to explore whether Blazor components can work well as the rendering unit for a strongly typed, server-driven hypermedia workflow.
+I'm [Jason Barnes](https://vyrotek.com) - Follow me: [@vyrotek](https://x.com/vyrotek)
