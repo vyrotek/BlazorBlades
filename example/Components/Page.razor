@@ -1,0 +1,137 @@
+﻿@implements IResultProps
+@implements IMapEndpoints
+@layout Layout
+
+<style type="text/css">
+    .header {
+        color: blue;
+    }
+</style>
+
+<PageTitle>Page</PageTitle>
+
+<h1 class="header">Blazor Blades!</h1>
+
+<h2>
+    Welcome from @User.Location - @User.Name
+</h2>
+
+<p>
+    @Food is the best!
+</p>
+
+<hr />
+
+<Status Today="DateTime.Now" Stats="new(100, 100)" MessageFragment="MoneyFragment(0)" />
+<button type="button" data-on:click="@@get('/status')">
+    Update
+</button>
+
+<hr />
+
+<div id="random">
+    Free Lucky Number
+</div>
+<button type="button" data-on:click="@@get('/random')">
+    Update
+</button>
+
+<hr />
+
+<div id="age">
+    @AgeFragment(100)
+</div>
+<button type="button" data-on:click="@@get('/old')">
+    Update
+</button>
+
+<hr />
+
+<div id="greeting">
+    @Greetings.SayHi(User.Name)
+</div>
+<button type="button" data-on:click="@@get('/greeting')">
+    Update
+</button>
+
+@code
+{
+    public record UserModel(string Name, string Location);
+
+    [Parameter, EditorRequired]
+    public UserModel User { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Food { get; set; }
+
+    public static void MapEndpoints(IEndpointRouteBuilder app)
+    {
+        Random rnd = new();
+
+        app.MapGet("/", async (string food = "Pizza") =>
+        {
+            // Local Model
+            var user = new UserModel("Jason", "Arizona");
+
+            // Generated Props Type
+            var props = new PageProps(user, food);
+
+            return Page.Result(props);
+        });
+
+        app.MapGet("/status", async () =>
+        {
+            // External Model
+            var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
+
+            // Generated Props Typs
+            var props = new StatusProps(DateTime.Now, stats, MoneyFragment(rnd.Next(0, 100000)));
+
+            return Status.Result(props);
+        });
+
+        app.MapGet("/random", async () =>
+        {
+            // Inline Fragment
+
+            return Results.Razor
+            (
+                @<div id="random">
+                    Lucky Number: @rnd.Next(1, 100)
+                </div>
+            );
+        });
+
+        app.MapGet("/greeting", async () =>
+        {
+            // External Fragment
+
+            var fragment = rnd.Next(2) == 0
+                ? Greetings.SayHello("Julia")
+                : Greetings.SayHi("Jason");
+
+            return Results.Razor(fragment);
+        });
+
+        app.MapGet("/old", async () =>
+        {
+            // Local Fragment
+
+            return Results.Razor(AgeFragment(rnd.Next(40, 100)));
+        });
+    }
+
+    private static RenderFragment AgeFragment(int years) =>
+    (
+        @<div id="age">
+            @years is really old!
+        </div>
+    );
+
+    private static RenderFragment MoneyFragment(int count) =>
+    (
+        @<b>
+            $@count
+        </b>
+    );
+}

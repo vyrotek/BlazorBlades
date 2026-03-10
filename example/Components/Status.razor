@@ -1,0 +1,23 @@
+﻿@implements IResultProps
+
+<div id="status">
+    <style>
+        #status {
+            color: green;
+        }
+    </style>
+    <div>
+        @Today - Hunger: @Stats.Hunger - Thirst: @Stats.Thirst - Income: @MessageFragment
+    </div>
+</div>
+ 
+@code
+{
+    public record StatsModel(int Hunger, int Thirst);
+
+    [Parameter, EditorRequired] public DateTime Today { get; set; }
+
+    [Parameter, EditorRequired] public StatsModel Stats { get; set; }
+
+    [Parameter, EditorRequired] public RenderFragment MessageFragment { get; set; }
+}

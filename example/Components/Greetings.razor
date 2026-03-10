@@ -1,0 +1,17 @@
+﻿
+@code {
+
+    public static RenderFragment SayHi(string name) =>
+    (
+        @<div id="greeting">
+            Hi! @name
+        </div>
+    );
+
+    public static RenderFragment SayHello(string name) =>
+    (
+        @<div id="greeting">
+           Hello! @name
+        </div>
+    );
+}
