@@ -292,13 +292,41 @@ namespace BlazorBlades.Generators
                                 StatusCode = statusCode
                             };
                         }
+
+                    public static async global::System.Threading.Tasks.Task<string> RenderAsync(global::System.IServiceProvider services, {{candidate.PropsTypeName}} props)
+                    {
+                        var loggerFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
+                            .GetRequiredService<global::Microsoft.Extensions.Logging.ILoggerFactory>(services);
+                        await using var renderer = new global::Microsoft.AspNetCore.Components.Web.HtmlRenderer(services, loggerFactory);
+                        var root = await renderer.Dispatcher.InvokeAsync(
+                            () => renderer.RenderComponentAsync<{{candidate.TypeName}}>(
+                                global::Microsoft.AspNetCore.Components.ParameterView.FromDictionary(
+                                    {{CreateRenderParameterDictionary(candidate.Properties)}}
+                                )
+                            )
+                        );
+                        await root.QuiescenceTask;
+                        return await renderer.Dispatcher.InvokeAsync(root.ToHtmlString);
+                    }
                 }
                 """;
         }
 
         private static string CreatePropsParameterList(
             IReadOnlyList<ResultProperty> properties
-        ) => string.Join(", ", properties.Select(static property => $"{property.TypeName} {property.Name}"));
+        ) => CreatePropertyList(
+            properties,
+            static property => $"{property.TypeName} {property.Name}"
+        );
+
+        private static string CreateRenderParameterDictionary(
+            IReadOnlyList<ResultProperty> properties
+        ) => $"new global::System.Collections.Generic.Dictionary<string, object?> {{ {CreatePropertyList(properties, static property => $"[\"{property.Name}\"] = props.{property.Name}")} }}";
+
+        private static string CreatePropertyList(
+            IReadOnlyList<ResultProperty> properties,
+            Func<ResultProperty, string> selector
+        ) => string.Join(", ", properties.Select(selector));
 
         private static void AddSource(
             SourceProductionContext sourceProductionContext,

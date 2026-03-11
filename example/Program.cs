@@ -1,4 +1,4 @@
-using BlazorBlades;
+using StarFederation.Datastar.DependencyInjection;
 
 namespace BlazorBlades.Web
 {
@@ -9,6 +9,8 @@ namespace BlazorBlades.Web
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddRazorComponents();
+
+            builder.Services.AddDatastar();
 
             var app = builder.Build();
 

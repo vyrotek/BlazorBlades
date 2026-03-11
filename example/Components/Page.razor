@@ -1,4 +1,5 @@
-﻿@implements IResultProps
+﻿@using StarFederation.Datastar.DependencyInjection
+@implements IResultProps
 @implements IMapEndpoints
 @layout Layout
 
@@ -22,7 +23,9 @@
 
 <hr />
 
-<Status Today="DateTime.Now" Stats="new(100, 100)" MessageFragment="MoneyFragment(0)" />
+<div data-init="@@get('/live')">
+    <Status Today="DateTime.Now" Stats="new(100, 100)" MessageFragment="MoneyFragment(0)" />
+</div>
 <button type="button" data-on:click="@@get('/status')">
     Update
 </button>
@@ -79,7 +82,7 @@
             return Page.Result(props);
         });
 
-        app.MapGet("/status", async () =>
+        app.MapGet("/status", async (IServiceProvider services, IDatastarService ds) =>
         {
             // External Model
             var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
@@ -87,7 +90,27 @@
             // Generated Props Typs
             var props = new StatusProps(DateTime.Now, stats, MoneyFragment(rnd.Next(0, 100000)));
 
+            // Return Result
             return Status.Result(props);
+        });
+
+        app.MapGet("/live", async (IServiceProvider services, IDatastarService ds) =>
+        {
+            while (true)
+            {
+                // External Model
+                var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
+
+                // Generated Props Typs
+                var props = new StatusProps(DateTime.Now, stats, MoneyFragment(rnd.Next(0, 100000)));
+
+                // Render HTML
+                var html = await Status.RenderAsync(services, props);
+
+                // Return Datastar SSE Element
+                await ds.PatchElementsAsync(html);
+                await Task.Delay(500);
+            }
         });
 
         app.MapGet("/random", async () =>
