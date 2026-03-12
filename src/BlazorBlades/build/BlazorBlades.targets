@@ -1,5 +1,11 @@
 <Project>
-    <ItemGroup Condition="'$(UsingMicrosoftNETSdkRazor)' == 'true' or '$(UsingMicrosoftNETSdkWeb)' == 'true'">
-        <AdditionalFiles Include="$(MSBuildProjectDirectory)\**\*.razor" Exclude="$(MSBuildProjectDirectory)\bin\**;$(MSBuildProjectDirectory)\obj\**" Visible="false" />
-    </ItemGroup>
+    <Target
+      Name="BlazorBladesAddRazorComponentsAsAdditionalFiles"
+      BeforeTargets="CoreCompile"
+      Condition="'$(UsingMicrosoftNETSdkRazor)' == 'true' or '$(UsingMicrosoftNETSdkWeb)' == 'true'">
+        <ItemGroup>
+            <AdditionalFiles Include="@(RazorComponent)"
+                             Exclude="@(AdditionalFiles)" />
+        </ItemGroup>
+    </Target>
 </Project>

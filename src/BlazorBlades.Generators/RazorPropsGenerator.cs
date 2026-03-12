@@ -10,14 +10,14 @@ using System.Linq;
 namespace BlazorBlades.Generators
 {
     [Generator]
-    public class ResultPropsGenerator : IIncrementalGenerator
+    public class RazorPropsGenerator : IIncrementalGenerator
     {
         private const string EditorRequiredAttributeName = "EditorRequiredAttribute";
         private const string GlobalAliasPrefix = "global::";
         private const string ParameterAttributeName = "ParameterAttribute";
         private const string PropsTypeSuffix = "Props";
-        private const string ResultPropsInterfaceName = "IResultProps";
-        private const string ResultPropsInterfaceMetadataName = "BlazorBlades.IResultProps";
+        private const string RazorPropsInterfaceName = "IRazorProps";
+        private const string RazorPropsInterfaceMetadataName = "BlazorBlades.IRazorProps";
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
@@ -27,7 +27,7 @@ namespace BlazorBlades.Generators
                         node is ClassDeclarationSyntax classSyntax
                         && GeneratorTypeHelpers.CouldBeInterfaceCandidate(
                             classSyntax,
-                            ResultPropsInterfaceName
+                            RazorPropsInterfaceName
                         ),
                     transform: static (ctx, _) =>
                     {
@@ -59,7 +59,7 @@ namespace BlazorBlades.Generators
                 {
                     var (compilation, (projectOptions, (classCandidates, razorDocuments))) = source;
 
-                    var resultPropsInterfaceSymbol = compilation.GetTypeByMetadataName(ResultPropsInterfaceMetadataName);
+                    var resultPropsInterfaceSymbol = compilation.GetTypeByMetadataName(RazorPropsInterfaceMetadataName);
 
                     if (resultPropsInterfaceSymbol is null)
                     {
@@ -75,14 +75,14 @@ namespace BlazorBlades.Generators
                             continue;
                         }
 
-                        var resultCandidate = ResultPropsGenerator.TryCreateSymbolCandidate(typeSymbol, resultPropsInterfaceSymbol);
+                        var resultCandidate = RazorPropsGenerator.TryCreateSymbolCandidate(typeSymbol, resultPropsInterfaceSymbol);
 
                         if (resultCandidate is null || !generatedTypes.Add(resultCandidate.ComponentTypeName))
                         {
                             continue;
                         }
 
-                        ResultPropsGenerator.AddSource(spc, resultCandidate);
+                        RazorPropsGenerator.AddSource(spc, resultCandidate);
                     }
 
                     var razorProjectEngine = RazorComponentDiscovery
@@ -94,7 +94,7 @@ namespace BlazorBlades.Generators
 
                     foreach (var razorDocumentPath in razorDocuments.Distinct(StringComparer.OrdinalIgnoreCase))
                     {
-                        var resultCandidate = ResultPropsGenerator.TryCreateRazorCandidate(
+                        var resultCandidate = RazorPropsGenerator.TryCreateRazorCandidate(
                             compilation,
                             resultPropsInterfaceSymbol,
                             razorProjectEngine,
@@ -107,13 +107,13 @@ namespace BlazorBlades.Generators
                             continue;
                         }
 
-                        ResultPropsGenerator.AddSource(spc, resultCandidate);
+                        RazorPropsGenerator.AddSource(spc, resultCandidate);
                     }
                 }
             );
         }
 
-        private static ResultCandidate? TryCreateSymbolCandidate(INamedTypeSymbol typeSymbol, INamedTypeSymbol resultPropsInterfaceSymbol)
+        private static RazorCandidate? TryCreateSymbolCandidate(INamedTypeSymbol typeSymbol, INamedTypeSymbol resultPropsInterfaceSymbol)
         {
             if (!GeneratorTypeHelpers.IsTopLevelConcreteNonGenericType(typeSymbol)
                 || !GeneratorTypeHelpers.ImplementsInterface(typeSymbol, resultPropsInterfaceSymbol))
@@ -127,7 +127,7 @@ namespace BlazorBlades.Generators
 
             var props = GetRequiredParameters(typeSymbol)
                 .Select(property =>
-                    new ResultProperty(
+                    new RazorProperty(
                         property.Name,
                         property.Type.ToDisplayString(
                             SymbolDisplayFormat.FullyQualifiedFormat
@@ -156,7 +156,7 @@ namespace BlazorBlades.Generators
             );
         }
 
-        private static ResultCandidate? TryCreateRazorCandidate(
+        private static RazorCandidate? TryCreateRazorCandidate(
             Compilation compilation,
             INamedTypeSymbol resultPropsInterfaceSymbol,
             RazorProjectEngine razorProjectEngine,
@@ -181,7 +181,7 @@ namespace BlazorBlades.Generators
 
             var props = GetRequiredParameters(component.SemanticModel, component.Declaration)
                 .Select(property =>
-                    new ResultProperty(
+                    new RazorProperty(
                         property.Name,
                         property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
                     )
@@ -271,7 +271,7 @@ namespace BlazorBlades.Generators
                 _ => string.Empty,
             };
 
-        private static string CreateSource(ResultCandidate candidate)
+        private static string CreateSource(RazorCandidate candidate)
         {
             var namespaceDeclaration = candidate.Namespace is null
                 ? string.Empty
@@ -313,24 +313,24 @@ namespace BlazorBlades.Generators
         }
 
         private static string CreatePropsParameterList(
-            IReadOnlyList<ResultProperty> properties
+            IReadOnlyList<RazorProperty> properties
         ) => CreatePropertyList(
             properties,
             static property => $"{property.TypeName} {property.Name}"
         );
 
         private static string CreateRenderParameterDictionary(
-            IReadOnlyList<ResultProperty> properties
+            IReadOnlyList<RazorProperty> properties
         ) => $"new global::System.Collections.Generic.Dictionary<string, object?> {{ {CreatePropertyList(properties, static property => $"[\"{property.Name}\"] = props.{property.Name}")} }}";
 
         private static string CreatePropertyList(
-            IReadOnlyList<ResultProperty> properties,
-            Func<ResultProperty, string> selector
+            IReadOnlyList<RazorProperty> properties,
+            Func<RazorProperty, string> selector
         ) => string.Join(", ", properties.Select(selector));
 
         private static void AddSource(
             SourceProductionContext sourceProductionContext,
-            ResultCandidate candidate
+            RazorCandidate candidate
         ) => sourceProductionContext.AddSource(
             candidate.HintName,
             SourceText.From(CreateSource(candidate), System.Text.Encoding.UTF8)
@@ -347,14 +347,14 @@ namespace BlazorBlades.Generators
                 + GeneratorConstants.GeneratedCSharpFileExtension;
         }
 
-        private sealed class ResultCandidate
+        private sealed class RazorCandidate
         {
-            public ResultCandidate(
+            public RazorCandidate(
                 string? ns,
                 string typeName,
                 string componentTypeName,
                 string propsTypeName,
-                IReadOnlyList<ResultProperty> properties,
+                IReadOnlyList<RazorProperty> properties,
                 string accessibility,
                 string hintName
             )
@@ -376,16 +376,16 @@ namespace BlazorBlades.Generators
 
             public string PropsTypeName { get; }
 
-            public IReadOnlyList<ResultProperty> Properties { get; }
+            public IReadOnlyList<RazorProperty> Properties { get; }
 
             public string Accessibility { get; }
 
             public string HintName { get; }
         }
 
-        private sealed class ResultProperty
+        private sealed class RazorProperty
         {
-            public ResultProperty(string name, string typeName)
+            public RazorProperty(string name, string typeName)
             {
                 Name = name;
                 TypeName = typeName;

@@ -1,5 +1,5 @@
 ﻿@using StarFederation.Datastar.DependencyInjection
-@implements IResultProps
+@implements IRazorProps
 @implements IMapEndpoints
 @layout Layout
 
@@ -94,9 +94,9 @@
             return Status.Result(props);
         });
 
-        app.MapGet("/live", async (IServiceProvider services, IDatastarService ds) =>
+        app.MapGet("/live", async (IServiceProvider services, IDatastarService ds, CancellationToken ct) =>
         {
-            while (true)
+            while (!ct.IsCancellationRequested)
             {
                 // External Model
                 var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
@@ -136,11 +136,14 @@
             return Results.Razor(fragment);
         });
 
-        app.MapGet("/old", async () =>
+        app.MapGet("/old", async (IServiceProvider services) =>
         {
             // Local Fragment
 
-            return Results.Razor(AgeFragment(rnd.Next(40, 100)));
+            // Render HTML
+            var fragHtml = await AgeFragment(rnd.Next(40, 100)).RenderAsync(services);
+
+            return Results.Content(fragHtml, "text/html");
         });
     }
 

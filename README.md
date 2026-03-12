@@ -17,7 +17,7 @@ Add NuGet
 Add these interfaces to .razor components and map endpoints
 
 ``` csharp
-@implements IResultProps
+@implements IRazorProps
 @implements IMapEndpoints
 
 @code
@@ -56,6 +56,10 @@ app.MapEndpoints();
 ...
 ```
 
+## Demo
+
+The sample web app in [Components/Page.razor](example/Components/Page.razor) has several examples.
+
 ## What
 
 Blazor Blades is an experimental project inspired by [RazorSlices](https://github.com/DamianEdwards/RazorSlices), but built around Blazor `.razor` components instead of Razor `.cshtml` templates.
@@ -75,21 +79,19 @@ I wanted a way to build HTML-first applications using Minimal APIs with:
 
 BlazorBlades lets a `.razor` component opt into generated capabilities:
 
-- A strongly typed `ComponentProps` record plus a static `Component.Result(...)` method
-- Automatic endpoint mapping via a single `app.MapEndpoints()` call
+- Typed `ComponentProps` record
+- Static `Component.Result(...)` method
+- Static `Component.RenderAsync(props)` method
+- Automatic endpoint discovvery and mapping via `app.MapEndpoints()`
 
-Two marker interfaces and source generators are used to accomplish this:
+Two component marker interfaces and source generators are used to accomplish this:
 
-- [IResultProps.cs](src/BlazorBlades/IResultProps.cs): 
-  - Marks a component that should get generated `Component.Result(props)` helper and `ComponentProps` record
+- [IRazorProps.cs](src/BlazorBlades/IRazorProps.cs): 
+  - Marks a component that should get generated `Component.Result(props)`, `Component.Result(...)`, and `ComponentProps`
 - [IMapEndpoints.cs](src/BlazorBlades/IMapEndpoints.cs): 
-  - Marks a component that exposes a static `MapEndpoints(app)` method to be called
+  - Marks a component that exposes a static `MapEndpoints(app)` method to be called by `app.MapEndpoints()`
 
-BlazorBlades also provides a `Results.Razor(fragment)` helper to render template fragments 
-
-## Demo
-
-The sample web app in [Components/Page.razor](example/Components/Page.razor) shows exampes of pages, partials, and fragments.
+BlazorBlades provides a `Results.Razor(fragment)` and `fragment.RenderAsync()` helpers to render template fragments.
 
 ## Who
 
