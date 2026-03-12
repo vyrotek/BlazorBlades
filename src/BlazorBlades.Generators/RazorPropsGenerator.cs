@@ -136,11 +136,6 @@ namespace BlazorBlades.Generators
                 )
                 .ToArray();
 
-            if (props.Length == 0)
-            {
-                return null;
-            }
-
             var ns = typeSymbol.ContainingNamespace.IsGlobalNamespace
                 ? null
                 : typeSymbol.ContainingNamespace.ToDisplayString();
@@ -187,11 +182,6 @@ namespace BlazorBlades.Generators
                     )
                 )
                 .ToArray();
-
-            if (props.Length == 0)
-            {
-                return null;
-            }
 
             var ns = component.Symbol.ContainingNamespace.IsGlobalNamespace
                 ? null
@@ -276,16 +266,28 @@ namespace BlazorBlades.Generators
             var namespaceDeclaration = candidate.Namespace is null
                 ? string.Empty
                 : $"namespace {candidate.Namespace};\n";
+            var hasProperties = candidate.Properties.Count > 0;
+            var propsRecordDeclaration = hasProperties
+                ? $"{candidate.Accessibility}record {candidate.PropsTypeName}({CreatePropsParameterList(candidate.Properties)});\n"
+                : string.Empty;
+            var resultPropsParameter = hasProperties
+                ? $"{candidate.PropsTypeName} props, "
+                : string.Empty;
+            var renderPropsParameter = hasProperties
+                ? $", {candidate.PropsTypeName} props"
+                : string.Empty;
+            var renderParameterView = hasProperties
+                ? $"global::Microsoft.AspNetCore.Components.ParameterView.FromDictionary(\n                                {CreateRenderParameterDictionary(candidate.Properties)}\n                            )"
+                : "global::Microsoft.AspNetCore.Components.ParameterView.Empty";
 
             return $$"""
                 #nullable enable
-                {{namespaceDeclaration}}{{candidate.Accessibility}}record {{candidate.PropsTypeName}}({{CreatePropsParameterList(candidate.Properties)}});
-                {{candidate.Accessibility}}partial class {{candidate.TypeName}}
+                {{namespaceDeclaration}}{{propsRecordDeclaration}}{{candidate.Accessibility}}partial class {{candidate.TypeName}}
                 {
                     public static global::Microsoft.AspNetCore.Http.HttpResults
-                        .RazorComponentResult<{{candidate.TypeName}}>Result({{candidate.PropsTypeName}} props, string? contentType = null, int? statusCode = null)
+                        .RazorComponentResult<{{candidate.TypeName}}>Result({{resultPropsParameter}}string? contentType = null, int? statusCode = null)
                         {
-                            return new(props)
+                            return new({{(hasProperties ? "props" : string.Empty)}})
                             {
                                 PreventStreamingRendering = true,
                                 ContentType = contentType,
@@ -293,16 +295,14 @@ namespace BlazorBlades.Generators
                             };
                         }
 
-                    public static async global::System.Threading.Tasks.Task<string> RenderAsync(global::System.IServiceProvider services, {{candidate.PropsTypeName}} props)
+                    public static async global::System.Threading.Tasks.Task<string> RenderAsync(global::System.IServiceProvider services{{renderPropsParameter}})
                     {
                         var loggerFactory = global::Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions
                             .GetRequiredService<global::Microsoft.Extensions.Logging.ILoggerFactory>(services);
                         await using var renderer = new global::Microsoft.AspNetCore.Components.Web.HtmlRenderer(services, loggerFactory);
                         var root = await renderer.Dispatcher.InvokeAsync(
                             () => renderer.RenderComponentAsync<{{candidate.TypeName}}>(
-                                global::Microsoft.AspNetCore.Components.ParameterView.FromDictionary(
-                                    {{CreateRenderParameterDictionary(candidate.Properties)}}
-                                )
+                                {{renderParameterView}}
                             )
                         );
                         await root.QuiescenceTask;

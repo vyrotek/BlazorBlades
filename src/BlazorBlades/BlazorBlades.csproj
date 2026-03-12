@@ -12,7 +12,7 @@
         <IsPackable>true</IsPackable>        
         <PackageIcon>icon.png</PackageIcon>
         <PackageId>BlazorBlades</PackageId>
-        <Version>0.3.0</Version>
+        <Version>0.4.0</Version>
         <Authors>Jason Barnes</Authors>
         <Copyright>Copyright © Jason Barnes</Copyright>
         <PackageTags>ASP.NET;Blazor;MinimalApis;RazorComponentResult;Hypermedia;SourceGenerator</PackageTags>
