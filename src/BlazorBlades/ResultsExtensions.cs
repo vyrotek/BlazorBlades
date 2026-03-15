@@ -9,17 +9,14 @@ namespace Microsoft.AspNetCore.Http
         extension(Results)
         {
             public static RazorComponentResult Fragment(RenderFragment fragment, string? contentType = null, int statusCode = 200)
-            {
-                return new RazorComponentResult<FragmentComponent>(new Dictionary<string, object?>
-                {
-                    [nameof(FragmentComponent.RenderFragment)] = fragment
-                })
-                {
-                    PreventStreamingRendering = true,
-                    ContentType = contentType,
-                    StatusCode = statusCode
-                };
-            }
+                => BladeRendering.CreateResult<FragmentComponent>(
+                    new Dictionary<string, object?>
+                    {
+                        [nameof(FragmentComponent.RenderFragment)] = fragment
+                    },
+                    contentType,
+                    statusCode
+                );
         }
     }
 }
