@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Http
     {
         extension(Results)
         {
-            public static RazorComponentResult Razor(RenderFragment fragment, string? contentType = null, int? statusCode = null)
+            public static RazorComponentResult Fragment(RenderFragment fragment, string? contentType = null, int statusCode = 200)
             {
                 return new RazorComponentResult<FragmentComponent>(new Dictionary<string, object?>
                 {

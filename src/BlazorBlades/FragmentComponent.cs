@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace BlazorBlades
 {
-    internal class FragmentComponent : ComponentBase
+    public class FragmentComponent : BlazorBlade
     {
         [Parameter]
         public required RenderFragment RenderFragment { get; set; }

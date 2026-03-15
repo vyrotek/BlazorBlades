@@ -1,17 +1,5 @@
-﻿@implements IRazorProps
-@implements IMapEndpoints
+﻿@inherits BlazorBlade
 @layout Layout
 
 <h3>This space intentionally left blank</h3>
 
-@code
-{
-    public static void MapEndpoints(IEndpointRouteBuilder app)
-    {
-        app.MapGet("/empty", async (IServiceProvider services) =>
-        {
-            var html = await Empty.RenderAsync(services);
-            return Empty.Result();            
-        });
-    }
-}

@@ -1,4 +1,4 @@
-﻿@implements IRazorProps
+﻿@inherits BlazorBlade<Status.StatusModel>
 
 <div id="status">
     <style>
@@ -7,17 +7,15 @@
         }
     </style>
     <div>
-        @Today - Hunger: @Stats.Hunger - Thirst: @Stats.Thirst - Income: @MessageFragment
+        @Model.Today - Hunger: @Model.Hunger - Thirst: @Model.Thirst - Income: @Model.MessageFragment
     </div>
 </div>
  
 @code
 {
-    public record StatsModel(int Hunger, int Thirst);
+    public record StatusModel(DateTime Today, int Hunger, int Thirst, RenderFragment MessageFragment);
 
-    [Parameter, EditorRequired] public DateTime Today { get; set; }
-
-    [Parameter, EditorRequired] public StatsModel Stats { get; set; }
-
-    [Parameter, EditorRequired] public RenderFragment MessageFragment { get; set; }
+    // Override enables EditorRequired functionality
+    [Parameter, EditorRequired] 
+    public override required StatusModel Model { get; set; }
 }

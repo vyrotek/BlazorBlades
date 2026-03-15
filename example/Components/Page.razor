@@ -1,5 +1,5 @@
 ﻿@using StarFederation.Datastar.DependencyInjection
-@implements IRazorProps
+@inherits BlazorBlade<Page.PageModel>
 @implements IMapEndpoints
 @layout Layout
 
@@ -14,17 +14,13 @@
 <h1 class="header">Blazor Blades!</h1>
 
 <h2>
-    Welcome from @User.Location - @User.Name
+    Welcome from @Model.Location - @Model.Name
 </h2>
-
-<p>
-    @Food is the best!
-</p>
 
 <hr />
 
 <div data-init="@@get('/live')">
-    <Status Today="DateTime.Now" Stats="new(100, 100)" MessageFragment="MoneyFragment(0)" />
+    <Status Model="Model.StatusModel" />
 </div>
 <button type="button" data-on:click="@@get('/status')">
     Update
@@ -51,7 +47,7 @@
 <hr />
 
 <div id="greeting">
-    @Greetings.SayHi(User.Name)
+    @Greetings.SayHi(Model.Name)
 </div>
 <button type="button" data-on:click="@@get('/greeting')">
     Update
@@ -59,13 +55,7 @@
 
 @code
 {
-    public record UserModel(string Name, string Location);
-
-    [Parameter, EditorRequired]
-    public UserModel User { get; set; }
-
-    [Parameter, EditorRequired]
-    public string Food { get; set; }
+    public record PageModel(string Name, string Location, Status.StatusModel StatusModel);
 
     public static void MapEndpoints(IEndpointRouteBuilder app)
     {
@@ -73,25 +63,33 @@
 
         app.MapGet("/", async (string food = "Pizza") =>
         {
-            // Local Model
-            var user = new UserModel("Jason", "Arizona");
+            // Child Status Model
+            var statusModel = new Status.StatusModel
+            (
+                DateTime.Now,
+                rnd.Next(0, 100),
+                rnd.Next(0, 100),
+                MoneyFragment(rnd.Next(0, 100000)
+            ));
 
-            // Generated Props Type
-            var props = new PageProps(user, food);
+            // Page Model
+            var model = new PageModel("Jason", "Arizona", statusModel);
 
-            return Page.Result(props);
+            return Page.Blade(model);
         });
 
         app.MapGet("/status", async (IServiceProvider services, IDatastarService ds) =>
         {
             // External Model
-            var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
+            var model = new Status.StatusModel
+            (
+                DateTime.Now,
+                rnd.Next(0, 100),
+                rnd.Next(0, 100),
+                MoneyFragment(rnd.Next(0, 100000)
+            ));
 
-            // Generated Props Typs
-            var props = new StatusProps(DateTime.Now, stats, MoneyFragment(rnd.Next(0, 100000)));
-
-            // Return Result
-            return Status.Result(props);
+            return Status.Blade(model);
         });
 
         app.MapGet("/live", async (IServiceProvider services, IDatastarService ds, CancellationToken ct) =>
@@ -99,13 +97,16 @@
             while (!ct.IsCancellationRequested)
             {
                 // External Model
-                var stats = new Status.StatsModel(rnd.Next(0, 100), rnd.Next(0, 100));
-
-                // Generated Props Typs
-                var props = new StatusProps(DateTime.Now, stats, MoneyFragment(rnd.Next(0, 100000)));
-
+                var model = new Status.StatusModel
+                (
+                    DateTime.Now,
+                    rnd.Next(0, 100),
+                    rnd.Next(0, 100),
+                    MoneyFragment(rnd.Next(0, 100000)
+                ));
+                
                 // Render HTML
-                var html = await Status.RenderAsync(services, props);
+                var html = await Status.RenderAsync(services, model);
 
                 // Return Datastar SSE Element
                 await ds.PatchElementsAsync(html);
@@ -117,7 +118,7 @@
         {
             // Inline Fragment
 
-            return Results.Razor
+            return Results.Fragment
             (
                 @<div id="random">
                     Lucky Number: @rnd.Next(1, 100)
@@ -133,17 +134,18 @@
                 ? Greetings.SayHello("Julia")
                 : Greetings.SayHi("Jason");
 
-            return Results.Razor(fragment);
+            return Results.Fragment(fragment);
         });
 
         app.MapGet("/old", async (IServiceProvider services) =>
         {
-            // Local Fragment
+            var fragment = AgeFragment(rnd.Next(40, 100));
 
             // Render HTML
-            var fragHtml = await AgeFragment(rnd.Next(40, 100)).RenderAsync(services);
+            var html = await fragment.RenderAsync(services);
 
-            return Results.Content(fragHtml, "text/html");
+            // Or return as Blade!
+            return fragment.Blade();
         });
     }
 
