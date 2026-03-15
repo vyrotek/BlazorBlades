@@ -22,10 +22,7 @@ namespace BlazorBlades.Generators
                 .CreateSyntaxProvider(
                     predicate: static (node, _) =>
                         node is ClassDeclarationSyntax classSyntax
-                        && GeneratorTypeHelpers.CouldBeInterfaceCandidate(
-                            classSyntax,
-                            MapEndpointsInterfaceName
-                        ),
+                        && CouldBeMapEndpointsCandidate(classSyntax),
                     transform: static (ctx, _) =>
                     {
                         var classSyntax = (ClassDeclarationSyntax)ctx.Node;
@@ -164,48 +161,70 @@ namespace BlazorBlades.Generators
             string razorDocumentPath
         )
         {
-            if (!RazorComponentDiscovery.TryGetGeneratedComponent(
+            if (!RazorComponentDiscovery.TryGetGeneratedComponentSymbol(
                     compilation,
                     razorProjectEngine,
                     projectDirectory,
                     razorDocumentPath,
-                    out var component)
-                || component is null
+                    out var componentSymbol)
+                || componentSymbol is null
+                || !GeneratorTypeHelpers.IsTopLevelConcreteNonGenericType(componentSymbol)
                 || !GeneratorTypeHelpers.ImplementsInterface(
-                    component.Symbol,
+                    componentSymbol,
                     mapEndpointsInterfaceSymbol
                 ))
             {
                 return null;
             }
 
-            return component.Symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            return componentSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         }
+
+        private static bool CouldBeMapEndpointsCandidate(ClassDeclarationSyntax classSyntax) =>
+            classSyntax.BaseList?.Types.Any(
+                baseType =>
+                    baseType.Type switch
+                    {
+                        IdentifierNameSyntax { Identifier.ValueText: MapEndpointsInterfaceName } => true,
+                        QualifiedNameSyntax
+                        {
+                            Right: IdentifierNameSyntax { Identifier.ValueText: MapEndpointsInterfaceName }
+                        } => true,
+                        AliasQualifiedNameSyntax
+                        {
+                            Name: IdentifierNameSyntax { Identifier.ValueText: MapEndpointsInterfaceName }
+                        } => true,
+                        _ => false,
+                    }
+            ) == true;
 
         private static string CreateSource(IEnumerable<string> componentTypeNames)
         {
-            var builder = new System.Text.StringBuilder();
+            var mapEndpointCalls = string.Join(
+                "\n",
+                componentTypeNames.Select(componentTypeName =>
+                    $"        {componentTypeName}.MapEndpoints(app);"
+                )
+            );
 
-            builder.AppendLine("#nullable enable");
-            builder.AppendLine("using Microsoft.AspNetCore.Routing;");
-            builder.AppendLine();
-            builder.AppendLine("namespace BlazorBlades;");
-            builder.AppendLine();
-            builder.AppendLine("public static class ComponentEndpointRouteBuilderExtensions");
-            builder.AppendLine("{");
-            builder.AppendLine("    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder app)");
-            builder.AppendLine("    {");
-            foreach (var componentTypeName in componentTypeNames)
-            {
-                builder.Append("        ");
-                builder.Append(componentTypeName);
-                builder.AppendLine(".MapEndpoints(app);");
-            }
-            builder.AppendLine("        return app;");
-            builder.AppendLine("    }");
-            builder.AppendLine("}");
+            var endpointMappings = string.IsNullOrEmpty(mapEndpointCalls)
+                ? string.Empty
+                : mapEndpointCalls + "\n";
 
-            return builder.ToString();
+            return $$"""
+                #nullable enable
+                using Microsoft.AspNetCore.Routing;
+
+                namespace BlazorBlades;
+
+                public static class ComponentEndpointRouteBuilderExtensions
+                {
+                    public static IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder app)
+                    {
+                {{endpointMappings}}        return app;
+                    }
+                }
+                """;
         }
 
     }

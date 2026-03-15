@@ -43,15 +43,15 @@ namespace BlazorBlades.Generators.Core
             );
         }
 
-        public static bool TryGetGeneratedComponent(
+        public static bool TryGetGeneratedComponentSymbol(
             Compilation compilation,
             RazorProjectEngine razorProjectEngine,
             string? projectDirectory,
             string razorDocumentPath,
-            out RazorGeneratedComponent? component
+            out INamedTypeSymbol? componentSymbol
         )
         {
-            component = null;
+            componentSymbol = null;
 
             if (compilation is not CSharpCompilation csharpCompilation)
             {
@@ -124,17 +124,11 @@ namespace BlazorBlades.Generators.Core
                 return false;
             }
 
-            var componentSymbol = semanticModel.GetDeclaredSymbol(componentDeclaration) as INamedTypeSymbol;
+            componentSymbol = semanticModel.GetDeclaredSymbol(componentDeclaration) as INamedTypeSymbol;
             if (componentSymbol is null)
             {
                 return false;
             }
-
-            component = new RazorGeneratedComponent(
-                componentSymbol,
-                componentDeclaration,
-                semanticModel
-            );
             return true;
         }
 
@@ -178,23 +172,4 @@ namespace BlazorBlades.Generators.Core
                 : path + Path.DirectorySeparatorChar;
     }
 
-    internal sealed class RazorGeneratedComponent
-    {
-        public RazorGeneratedComponent(
-            INamedTypeSymbol symbol,
-            ClassDeclarationSyntax declaration,
-            SemanticModel semanticModel
-        )
-        {
-            Symbol = symbol;
-            Declaration = declaration;
-            SemanticModel = semanticModel;
-        }
-
-        public INamedTypeSymbol Symbol { get; }
-
-        public ClassDeclarationSyntax Declaration { get; }
-
-        public SemanticModel SemanticModel { get; }
-    }
 }

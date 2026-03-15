@@ -102,56 +102,58 @@ namespace BlazorBlades.Generators
             string razorDocumentPath
         )
         {
-            if (!RazorComponentDiscovery.TryGetGeneratedComponent(
+            if (!RazorComponentDiscovery.TryGetGeneratedComponentSymbol(
                     compilation,
                     razorProjectEngine,
                     projectDirectory,
                     razorDocumentPath,
-                    out var component)
-                || component is null
-                || !GeneratorTypeHelpers.IsTopLevelConcreteNonGenericType(component.Symbol))
+                    out var componentSymbol)
+                || componentSymbol is null
+                || !GeneratorTypeHelpers.IsTopLevelConcreteNonGenericType(componentSymbol))
             {
                 return null;
             }
 
-            var bladeKind = TryGetBladeKind(
-                component.Symbol,
-                blazorBladeSymbol,
-                genericBlazorBladeSymbol
-            );
-            if (bladeKind is null)
+            if (!TryGetModelTypeName(
+                    componentSymbol,
+                    blazorBladeSymbol,
+                    genericBlazorBladeSymbol,
+                    out var modelTypeName))
             {
                 return null;
             }
 
-            var componentTypeName = component.Symbol.ToDisplayString(
+            var componentTypeName = componentSymbol.ToDisplayString(
                 SymbolDisplayFormat.FullyQualifiedFormat
             );
-            var ns = component.Symbol.ContainingNamespace.IsGlobalNamespace
+            var ns = componentSymbol.ContainingNamespace.IsGlobalNamespace
                 ? null
-                : component.Symbol.ContainingNamespace.ToDisplayString();
+                : componentSymbol.ContainingNamespace.ToDisplayString();
 
             return new RazorModelCandidate(
                 ns,
-                component.Symbol.Name,
+                componentSymbol.Name,
                 componentTypeName,
-                bladeKind.ModelTypeName,
-                GetAccessibilityKeyword(component.Symbol.DeclaredAccessibility),
+                modelTypeName,
+                GetAccessibilityKeyword(componentSymbol.DeclaredAccessibility),
                 GetHintName(componentTypeName)
             );
         }
 
-        private static BladeKind? TryGetBladeKind(
+        private static bool TryGetModelTypeName(
             INamedTypeSymbol componentSymbol,
             INamedTypeSymbol blazorBladeSymbol,
-            INamedTypeSymbol genericBlazorBladeSymbol
+            INamedTypeSymbol genericBlazorBladeSymbol,
+            out string? modelTypeName
         )
         {
+            modelTypeName = null;
+
             for (var current = componentSymbol.BaseType; current is not null; current = current.BaseType)
             {
                 if (SymbolEqualityComparer.Default.Equals(current, blazorBladeSymbol))
                 {
-                    return BladeKind.NonGeneric;
+                    return true;
                 }
 
                 if (!current.IsGenericType)
@@ -166,11 +168,12 @@ namespace BlazorBlades.Generators
                     )
                 )
                 {
-                    return new BladeKind(GetModelTypeName(componentSymbol, current.TypeArguments[0]));
+                    modelTypeName = GetModelTypeName(componentSymbol, current.TypeArguments[0]);
+                    return true;
                 }
             }
 
-            return null;
+            return false;
         }
 
         private static string GetModelTypeName(
@@ -269,16 +272,5 @@ namespace BlazorBlades.Generators
             public string HintName { get; }
         }
 
-        private sealed class BladeKind
-        {
-            public static BladeKind NonGeneric { get; } = new BladeKind(null);
-
-            public BladeKind(string? modelTypeName)
-            {
-                ModelTypeName = modelTypeName;
-            }
-
-            public string? ModelTypeName { get; }
-        }
     }
 }
