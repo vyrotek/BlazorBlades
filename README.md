@@ -14,11 +14,19 @@ Add NuGet
 > dotnet add package BlazorBlades
 ```
 
-Add these interfaces to `.razor` components, map endpoints, and render!
+Add these to your `Component.razor`
+
+- Add `@inherits BlazorBlade<Model>` 
+- Add `@implements IMapEndpoints`
+- Implement `MapEndpoints()` in `@code{ }` or `Component.razor.cs`
 
 ``` csharp
-@implements IRazorProps
-@implements IMapEndpoints
+// MyComponent.razor
+@inherits BlazorBlade<Model> // Generates @Model, Blade(), RenderAsync()
+@implements IMapEndpoints // Provides MapEndpoints()
+
+// Generated @Model Property 
+<div>Hello @Model.Name !</div>
 
 @code
 {
@@ -26,29 +34,40 @@ Add these interfaces to `.razor` components, map endpoints, and render!
   {
     app.MapGet("/component", () => 
     {
-      // Generated Props
-      var props = new ComponentNameProps();
-      
-      // Call Result with Props
-      return ComponentName.Result(props); 
+      var model = new Model("Jason");
+
+      // Strongly-Typed RazorComponentResult
+      return MyComponent.Blade(model); 
     });
 
     app.MapGet("/fragment", async () =>
     {
-        // Inline Fragment
+        var message = "Developers, Developers, Developers!"
+
+        // Inline Fragment Result
         return Results.Razor
         (
             @<div>
-                Hello!
+                Quote: @message
             </div>
         );
     });
 
+    app.MapGet("/raw", (IServiceProvider services) => 
+    {
+      // Render Component      
+      var html = await MyComponent.RenderAsync(services, new Model("Jason"));
+
+      // Render Fragment
+      var html = await HelperFragments.SayHello("Julia").RenderAsync()
+      ...
+    });
   }
 }
 ```
 
-Add this to program.cs
+Add `app.MapEndpoints()` to `program.cs` to map all `IMapEndpoints` components
+
 ``` csharp
 var app = builder.Build();
 ...
@@ -77,19 +96,17 @@ I wanted a way to build HTML-first applications using Minimal APIs with:
 
 BlazorBlades lets a `.razor` component opt into generated capabilities:
 
-- Typed `ComponentProps` record
-- Static `Component.Result(...)` method
-- Static `Component.RenderAsync(props)` method
-- Automatic endpoint discovvery and mapping via `app.MapEndpoints()`
+- `@inherits BlazorBlade<TModel>` provides a Static `Component.Blade(model)`
+- `@implements IMapEndpoints` provides a Static `Component.RenderAsync(services, model)`
+- `app.MapEndpoints()` automatically calls `Component.MapEndpoints(app)`
 
 Two component marker interfaces and source generators are used to accomplish this:
 
-- [IRazorProps.cs](src/BlazorBlades/IRazorProps.cs): 
-  - Marks a component that should get generated `Component.Result(props)`, `Component.Result(...)`, and `ComponentProps`
-- [IMapEndpoints.cs](src/BlazorBlades/IMapEndpoints.cs): 
-  - Marks a component that exposes a static `MapEndpoints(app)` method to be called by `app.MapEndpoints()`
+BlazorBlades also makes working with `RenderFragement` easier with:
 
-BlazorBlades provides a `Results.Razor(fragment)` and `fragment.RenderAsync()` helpers to render template fragments.
+- `Results.Razor(fragment)` 
+- `fragment.RenderAsync(services)`
+- `fragment.Blade()`
 
 ## Who
 
