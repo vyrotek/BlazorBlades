@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BlazorBlades
 {
-    public abstract partial class BlazorBlade<TModel> : BlazorBladeBase, IBlazorBlade<TModel>
+    public abstract partial class BlazorBlade<TModel> : ComponentBase
     {
         [Parameter]
         public virtual required TModel Model { get; set; }
@@ -49,7 +49,7 @@ namespace BlazorBlades
         }
     }
 
-    public abstract partial class BlazorBlade : BlazorBladeBase, IBlazorBlade
+    public abstract partial class BlazorBlade : ComponentBase
     {
         public static RazorComponentResult<TBlade> Blade<TBlade>(int statusCode = 200)
             where TBlade : BlazorBlade
@@ -76,6 +76,4 @@ namespace BlazorBlades
             });
         }
     }
-
-    public abstract class BlazorBladeBase : ComponentBase { }
 }
