@@ -1,10 +1,10 @@
 # Blazor Blades
 
-![Icon](icon.png)
+[![Nuget](https://img.shields.io/nuget/v/BlazorBlades)](https://www.nuget.org/packages/BlazorBlades/)
 
 ## TL;DR
 
-Render strongly-typed Blazor components and fragments via Minimal APIs organized within .razor files
+Conveniently render strongly-typed Razor Components and Fragments via Minimal APIs
 
 ## Try It
 
@@ -14,7 +14,7 @@ Add NuGet
 > dotnet add package BlazorBlades
 ```
 
-Add these interfaces to .razor components and map endpoints
+Add these interfaces to `.razor` components, map endpoints, and render!
 
 ``` csharp
 @implements IRazorProps
@@ -62,9 +62,7 @@ The sample web app in [Components/Page.razor](example/Components/Page.razor) has
 
 ## What
 
-Blazor Blades is an experimental project inspired by [RazorSlices](https://github.com/DamianEdwards/RazorSlices), but built around Blazor `.razor` components instead of Razor `.cshtml` templates.
-
-It's aimed at devs looking for a .NET hypermedia workflow that is strongly typed end-to-end while keeping the benefits of Blazor components.
+Blazor Blades is an experimental project inspired by [RazorSlices](https://github.com/DamianEdwards/RazorSlices), but built around Blazor `.razor` components instead of Razor `.cshtml` templates. It's aimed at devs looking for a .NET hypermedia workflow that is strongly typed end-to-end while keeping the benefits of Blazor components.
 
 ## Why
 
